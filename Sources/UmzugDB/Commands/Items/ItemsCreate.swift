@@ -2,10 +2,10 @@ import ArgumentParser
 import Vapor
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct ItemsCreate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get",
-        abstract: "Fetch a user from the database.",
+        commandName: "create",
+        abstract: "Add a new item to the database.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -17,6 +17,14 @@ struct UsersGet: AsyncParsableCommand {
         aliases: []
     )
     
+    struct ItemOptionGroup: ParsableArguments {
+        @ArgumentParser.Argument
+        var title: String
+        
+        @ArgumentParser.Option(name: [.long, .customShort("B")])
+        var box: Box.IDValue
+    }
+    
     @ArgumentParser.Option(name: [.short, .customLong("env")])
     private var environment: ParsableEnvironment?
     
@@ -26,8 +34,8 @@ struct UsersGet: AsyncParsableCommand {
     @ArgumentParser.Option(name: [.customShort("f"), .customLong("format")])
     private var outputFormat: OutputFormat = .yaml
     
-    @ArgumentParser.Argument
-    private var userID: UUID
+    @ArgumentParser.OptionGroup(title: "Item Options")
+    private var item: ItemOptionGroup
     
     init() { }
     
@@ -51,13 +59,10 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
+            let item = Item(id: nil, title: self.item.title, boxID: self.item.box)
+            try await item.create(on: app.db)
             
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
-            } else {
-                throw DBError.userNotFound(userID)
-            }
+            print(try outputFormat.format(item.toDTO()))
         } catch {
             app.logger.report(error: error)
             try? await app.asyncShutdown()

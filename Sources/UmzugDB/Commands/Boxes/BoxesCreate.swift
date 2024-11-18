@@ -2,10 +2,10 @@ import ArgumentParser
 import Vapor
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct BoxesCreate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get",
-        abstract: "Fetch a user from the database.",
+        commandName: "create",
+        abstract: "Add a new box to the database.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -17,6 +17,11 @@ struct UsersGet: AsyncParsableCommand {
         aliases: []
     )
     
+    struct BoxOptionGroup: ParsableArguments {
+        @ArgumentParser.Argument
+        var title: String
+    }
+    
     @ArgumentParser.Option(name: [.short, .customLong("env")])
     private var environment: ParsableEnvironment?
     
@@ -26,8 +31,8 @@ struct UsersGet: AsyncParsableCommand {
     @ArgumentParser.Option(name: [.customShort("f"), .customLong("format")])
     private var outputFormat: OutputFormat = .yaml
     
-    @ArgumentParser.Argument
-    private var userID: UUID
+    @ArgumentParser.OptionGroup(title: "Box Options")
+    private var box: BoxOptionGroup
     
     init() { }
     
@@ -51,13 +56,10 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
+            let box = Box(id: nil, title: self.box.title)
+            try await box.create(on: app.db)
             
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
-            } else {
-                throw DBError.userNotFound(userID)
-            }
+            print(try outputFormat.format(box.toDTO()))
         } catch {
             app.logger.report(error: error)
             try? await app.asyncShutdown()

@@ -1,11 +1,12 @@
 import ArgumentParser
 import Vapor
+import Fluent
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct BoxesList: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get",
-        abstract: "Fetch a user from the database.",
+        commandName: "list",
+        abstract: "List boxes stored in the database.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -17,6 +18,14 @@ struct UsersGet: AsyncParsableCommand {
         aliases: []
     )
     
+    struct FilterOptions: ParsableArguments {
+        @ArgumentParser.Option(name: [.long, .customShort("L")]) // TODO: add description, 0 = no limit
+        var limit: UInt = 100
+        
+        @ArgumentParser.Option(name: [.long, .customShort("S")])
+        var search: String?
+    }
+    
     @ArgumentParser.Option(name: [.short, .customLong("env")])
     private var environment: ParsableEnvironment?
     
@@ -26,8 +35,8 @@ struct UsersGet: AsyncParsableCommand {
     @ArgumentParser.Option(name: [.customShort("f"), .customLong("format")])
     private var outputFormat: OutputFormat = .yaml
     
-    @ArgumentParser.Argument
-    private var userID: UUID
+    @ArgumentParser.OptionGroup(title: "Filtering Options")
+    private var filterOptions: FilterOptions
     
     init() { }
     
@@ -51,13 +60,17 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
+            var query = Box.query(on: app.db)
             
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
-            } else {
-                throw DBError.userNotFound(userID)
+            if let search = filterOptions.search {
+                query = query.filter(\.$title =~ search)
             }
+            
+            let boxes = try await query
+                .range(lower: 0, upper: filterOptions.limit == 0 ? nil : Int(filterOptions.limit))
+                .all()
+                .map { $0.toDTO() }
+            print(try outputFormat.format(boxes))
         } catch {
             app.logger.report(error: error)
             try? await app.asyncShutdown()

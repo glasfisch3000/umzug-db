@@ -2,10 +2,10 @@ import ArgumentParser
 import Vapor
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct ItemsDelete: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get",
-        abstract: "Fetch a user from the database.",
+        commandName: "delete",
+        abstract: "Delete items from the database.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -27,7 +27,7 @@ struct UsersGet: AsyncParsableCommand {
     private var outputFormat: OutputFormat = .yaml
     
     @ArgumentParser.Argument
-    private var userID: UUID
+    private var itemIDs: [UUID]
     
     init() { }
     
@@ -51,13 +51,18 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
+            var deleted: [Item.DTO] = []
             
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
-            } else {
-                throw DBError.userNotFound(userID)
+            for itemID in itemIDs {
+                if let item = try await Item.find(itemID, on: app.db) {
+                    try await item.delete(on: app.db)
+                    deleted.append(item.toDTO())
+                } else {
+                    print("item not found for id \(itemID)")
+                }
             }
+            
+            print("deleted items:\n" + (try outputFormat.format(deleted)))
         } catch {
             app.logger.report(error: error)
             try? await app.asyncShutdown()

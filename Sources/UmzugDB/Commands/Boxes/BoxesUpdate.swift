@@ -2,10 +2,10 @@ import ArgumentParser
 import Vapor
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct BoxesUpdate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get",
-        abstract: "Fetch a user from the database.",
+        commandName: "update",
+        abstract: "Update a box's attributes.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -17,6 +17,11 @@ struct UsersGet: AsyncParsableCommand {
         aliases: []
     )
     
+    struct BoxOptionGroup: ParsableArguments {
+        @ArgumentParser.Option(name: [.long, .customShort("T")])
+        var title: String?
+    }
+    
     @ArgumentParser.Option(name: [.short, .customLong("env")])
     private var environment: ParsableEnvironment?
     
@@ -27,7 +32,10 @@ struct UsersGet: AsyncParsableCommand {
     private var outputFormat: OutputFormat = .yaml
     
     @ArgumentParser.Argument
-    private var userID: UUID
+    private var boxID: UUID
+    
+    @ArgumentParser.OptionGroup(title: "Update Options")
+    private var boxOptions: BoxOptionGroup
     
     init() { }
     
@@ -51,13 +59,17 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
-            
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
-            } else {
-                throw DBError.userNotFound(userID)
+            guard let box = try await Box.find(boxID, on: app.db) else {
+                throw DBError.boxNotFound(boxID)
             }
+            
+            if let title = boxOptions.title {
+                box.title = title
+            }
+            
+            try await box.update(on: app.db)
+            
+            print(try outputFormat.format(box.toDTO()))
         } catch {
             app.logger.report(error: error)
             try? await app.asyncShutdown()

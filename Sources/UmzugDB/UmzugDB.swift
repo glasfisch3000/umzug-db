@@ -11,7 +11,7 @@ struct UmzugDB: AsyncParsableCommand {
         shouldDisplay: true,
         subcommands: [Serve.self, Routes.self, Migrate.self],
         groupedSubcommands: [
-            CommandGroup(name: "Database", subcommands: [Users.self, Cum.self])
+            CommandGroup(name: "Database", subcommands: [Users.self, Boxes.self, Items.self, Cum.self])
         ],
         defaultSubcommand: nil,
         helpNames: .shortAndLong,

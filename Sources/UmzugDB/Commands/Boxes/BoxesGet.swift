@@ -2,10 +2,10 @@ import ArgumentParser
 import Vapor
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct BoxesGet: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "get",
-        abstract: "Fetch a user from the database.",
+        abstract: "Fetch a box from the database.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -27,7 +27,7 @@ struct UsersGet: AsyncParsableCommand {
     private var outputFormat: OutputFormat = .yaml
     
     @ArgumentParser.Argument
-    private var userID: UUID
+    private var boxID: UUID
     
     init() { }
     
@@ -51,12 +51,12 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
+            let box = try await Box.find(boxID, on: app.db)
             
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
+            if let box = box?.toDTO() {
+                print(try outputFormat.format(box))
             } else {
-                throw DBError.userNotFound(userID)
+                throw DBError.boxNotFound(boxID)
             }
         } catch {
             app.logger.report(error: error)

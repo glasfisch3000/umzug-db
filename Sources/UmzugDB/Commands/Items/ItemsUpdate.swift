@@ -2,10 +2,10 @@ import ArgumentParser
 import Vapor
 import NIOFileSystem
 
-struct UsersGet: AsyncParsableCommand {
+struct ItemsUpdate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "get",
-        abstract: "Fetch a user from the database.",
+        commandName: "update",
+        abstract: "Update an item's attributes.",
 //        usage: <#T##String?#>,
 //        discussion: <#T##String#>,
         version: "0.0.0",
@@ -17,6 +17,14 @@ struct UsersGet: AsyncParsableCommand {
         aliases: []
     )
     
+    struct ItemOptionGroup: ParsableArguments {
+        @ArgumentParser.Option(name: [.long, .customShort("T")])
+        var title: String?
+        
+        @ArgumentParser.Option(name: [.long, .customShort("B")])
+        var box: Box.IDValue?
+    }
+    
     @ArgumentParser.Option(name: [.short, .customLong("env")])
     private var environment: ParsableEnvironment?
     
@@ -27,7 +35,10 @@ struct UsersGet: AsyncParsableCommand {
     private var outputFormat: OutputFormat = .yaml
     
     @ArgumentParser.Argument
-    private var userID: UUID
+    private var itemID: UUID
+    
+    @ArgumentParser.OptionGroup(title: "Update Options")
+    private var itemOptions: ItemOptionGroup
     
     init() { }
     
@@ -51,13 +62,21 @@ struct UsersGet: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let user = try await User.find(userID, on: app.db)
-            
-            if let user = user?.toDTO() {
-                print(try outputFormat.format(user))
-            } else {
-                throw DBError.userNotFound(userID)
+            guard let item = try await Item.find(itemID, on: app.db) else {
+                throw DBError.itemNotFound(itemID)
             }
+            
+            if let name = itemOptions.title {
+                item.title = name
+            }
+            
+            if let boxID = itemOptions.box {
+                item.$box.id = boxID
+            }
+            
+            try await item.update(on: app.db)
+            
+            print(try outputFormat.format(item.toDTO()))
         } catch {
             app.logger.report(error: error)
             try? await app.asyncShutdown()
