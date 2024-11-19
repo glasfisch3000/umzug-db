@@ -56,7 +56,7 @@ struct BoxesGet: AsyncParsableCommand {
             if let box = box?.toDTO() {
                 print(try outputFormat.format(box))
             } else {
-                throw DBError.modelNotFound(.boxes(boxID))
+                throw DBError.modelNotFound(.box(boxID))
             }
         } catch {
             app.logger.report(error: error)

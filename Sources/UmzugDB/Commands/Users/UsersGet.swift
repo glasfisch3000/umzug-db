@@ -56,7 +56,7 @@ struct UsersGet: AsyncParsableCommand {
             if let user = user?.toDTO() {
                 print(try outputFormat.format(user))
             } else {
-                throw DBError.modelNotFound(.users(userID))
+                throw DBError.modelNotFound(.user(userID))
             }
         } catch {
             app.logger.report(error: error)
