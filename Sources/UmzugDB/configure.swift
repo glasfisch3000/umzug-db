@@ -15,7 +15,10 @@ public func configureDB(_ app: Application, _ config: AppConfig) async throws {
         )), as: .psql
     )
     
-    // TODO: migrations
+    app.migrations.add(CreateUser())
+    app.migrations.add(CreateBox())
+    app.migrations.add(CreateItem())
+    app.migrations.add(CreatePacking())
 }
 
 func configureRoutes(_ app: Application) throws {
