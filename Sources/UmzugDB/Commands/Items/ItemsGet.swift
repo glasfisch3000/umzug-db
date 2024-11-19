@@ -52,7 +52,6 @@ struct ItemsGet: AsyncParsableCommand {
             try await configureDB(app, config)
             
             let item = try await Item.find(itemID, on: app.db)
-            try await item?.$box.load(on: app.db)
             
             if let item = item?.toDTO() {
                 print(try outputFormat.format(item))

@@ -24,9 +24,6 @@ struct ItemsList: AsyncParsableCommand {
         
         @ArgumentParser.Option(name: [.long, .customShort("S")])
         var search: String?
-        
-        @ArgumentParser.Option(name: [.customLong("box"), .customShort("B")])
-        var boxSearch: String?
     }
     
     @ArgumentParser.Option(name: [.short, .customLong("env")])
@@ -67,19 +64,6 @@ struct ItemsList: AsyncParsableCommand {
             
             if let search = filterOptions.search {
                 query = query.filter(\.$title =~ search)
-            }
-            
-            if let boxSearch = filterOptions.boxSearch {
-                if let boxID = UUID(boxSearch) {
-                    query = query.filter(\.$box.$id == boxID)
-                } else {
-                    query = query
-                        .join(parent: \.$box)
-                        .filter(Box.self, \.$title =~ boxSearch)
-                        .with(\.$box)
-                }
-            } else {
-                query = query.with(\.$box)
             }
             
             let items = try await query

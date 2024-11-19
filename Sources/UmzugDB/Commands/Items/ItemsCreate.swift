@@ -20,9 +20,6 @@ struct ItemsCreate: AsyncParsableCommand {
     struct ItemOptionGroup: ParsableArguments {
         @ArgumentParser.Argument
         var title: String
-        
-        @ArgumentParser.Option(name: [.long, .customShort("B")])
-        var box: Box.IDValue
     }
     
     @ArgumentParser.Option(name: [.short, .customLong("env")])
@@ -59,7 +56,7 @@ struct ItemsCreate: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let item = Item(id: nil, title: self.item.title, boxID: self.item.box)
+            let item = Item(id: nil, title: self.item.title)
             try await item.create(on: app.db)
             
             print(try outputFormat.format(item.toDTO()))

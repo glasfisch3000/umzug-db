@@ -20,9 +20,6 @@ struct ItemsUpdate: AsyncParsableCommand {
     struct ItemOptionGroup: ParsableArguments {
         @ArgumentParser.Option(name: [.long, .customShort("T")])
         var title: String?
-        
-        @ArgumentParser.Option(name: [.long, .customShort("B")])
-        var box: Box.IDValue?
     }
     
     @ArgumentParser.Option(name: [.short, .customLong("env")])
@@ -68,10 +65,6 @@ struct ItemsUpdate: AsyncParsableCommand {
             
             if let name = itemOptions.title {
                 item.title = name
-            }
-            
-            if let boxID = itemOptions.box {
-                item.$box.id = boxID
             }
             
             try await item.update(on: app.db)

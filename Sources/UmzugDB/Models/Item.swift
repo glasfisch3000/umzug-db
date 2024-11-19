@@ -10,22 +10,17 @@ final class Item: Model, Sendable {
 
     @Field(key: "title")
     var title: String
-    
-    @Parent(key: "box")
-    var box: Box
 
     init() { }
 
-    init(id: UUID? = nil, title: String, boxID: Box.IDValue) {
+    init(id: UUID? = nil, title: String) {
         self.id = id
         self.title = title
-        self.$box.id = boxID
     }
     
     func toDTO() -> DTO {
         DTO(id: self.$id.value,
-            title: self.title,
-            box: self.$box.value?.toDTO())
+            title: self.title)
     }
 }
 
@@ -33,6 +28,5 @@ extension Item {
     struct DTO: Codable {
         var id: UUID?
         var title: String
-        var box: Box.DTO?
     }
 }
