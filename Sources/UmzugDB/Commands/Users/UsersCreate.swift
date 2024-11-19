@@ -1,6 +1,7 @@
 import ArgumentParser
 import Vapor
 import NIOFileSystem
+import FluentPostgresDriver
 
 struct UsersCreate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -60,7 +61,11 @@ struct UsersCreate: AsyncParsableCommand {
             try await configureDB(app, config)
             
             let user = User(id: nil, name: self.user.name, password: self.user.password)
-            try await user.create(on: app.db)
+            do {
+                try await user.create(on: app.db)
+            } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
+                throw DBError.uniqueConstraintViolation(.users(name: user.name))
+            }
             
             print(try outputFormat.format(user.toDTO()))
         } catch {

@@ -39,12 +39,14 @@ extension DBError {
         case users(name: String)
         case boxes(title: String)
         case items(title: String)
+        case packing(item: Item.IDValue, box: Box.IDValue)
         
         var description: String {
             switch self {
             case .users(name: let name): "Violation of user's name uniqueness constraint: \"\(name)\""
             case .boxes(title: let title): "Violation of box's title uniqueness constraint: \"\(title)\""
             case .items(title: let title): "Violation of item's title uniqueness constraint: \"\(title)\""
+            case .packing(item: let item, box: let box): "Violation of packing's item+box uniqueness constraint: item \(item), box \(box)"
             }
         }
     }

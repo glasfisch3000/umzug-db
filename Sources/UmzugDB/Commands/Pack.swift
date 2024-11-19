@@ -1,6 +1,7 @@
 import ArgumentParser
 import Vapor
 import Fluent
+import FluentPostgresDriver
 import NIOFileSystem
 
 struct Pack: AsyncParsableCommand {
@@ -76,11 +77,19 @@ struct Pack: AsyncParsableCommand {
                 try await box.create(on: app.db)
             }
             
-            let packing = try await getPacking(item: try item.requireID(),
-                                     box: try box.requireID(),
-                                     on: app.db)
+            let itemID = try item.requireID()
+            let boxID = try box.requireID()
+            
+            let packing = try await getPacking(item: itemID,
+                                               box: boxID,
+                                               on: app.db)
             packing.amount += self.amount
-            try await packing.save(on: app.db)
+            
+            do {
+                try await packing.save(on: app.db)
+            } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
+                throw DBError.uniqueConstraintViolation(.packing(item: itemID, box: boxID))
+            }
             
             print(try outputFormat.format(packing.toDTO()))
         } catch {

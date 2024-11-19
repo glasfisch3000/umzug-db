@@ -1,6 +1,7 @@
 import ArgumentParser
 import Vapor
 import NIOFileSystem
+import FluentPostgresDriver
 
 struct ItemsCreate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -57,7 +58,11 @@ struct ItemsCreate: AsyncParsableCommand {
             try await configureDB(app, config)
             
             let item = Item(id: nil, title: self.item.title)
-            try await item.create(on: app.db)
+            do {
+                try await item.create(on: app.db)
+            } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
+                throw DBError.uniqueConstraintViolation(.items(title: item.title))
+            }
             
             print(try outputFormat.format(item.toDTO()))
         } catch {
