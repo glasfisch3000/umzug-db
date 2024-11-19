@@ -63,7 +63,7 @@ struct ItemsUpdate: AsyncParsableCommand {
             try await configureDB(app, config)
             
             guard let item = try await Item.find(itemID, on: app.db) else {
-                throw DBError.itemNotFound(itemID)
+                throw DBError.modelNotFound(.items(itemID))
             }
             
             if let name = itemOptions.title {

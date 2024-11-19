@@ -60,7 +60,7 @@ struct BoxesUpdate: AsyncParsableCommand {
             try await configureDB(app, config)
             
             guard let box = try await Box.find(boxID, on: app.db) else {
-                throw DBError.boxNotFound(boxID)
+                throw DBError.modelNotFound(.boxes(boxID))
             }
             
             if let title = boxOptions.title {

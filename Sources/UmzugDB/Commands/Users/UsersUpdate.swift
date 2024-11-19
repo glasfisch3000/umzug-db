@@ -63,7 +63,7 @@ struct UsersUpdate: AsyncParsableCommand {
             try await configureDB(app, config)
             
             guard let user = try await User.find(userID, on: app.db) else {
-                throw DBError.userNotFound(userID)
+                throw DBError.modelNotFound(.users(userID))
             }
             
             if let name = userOptions.name {

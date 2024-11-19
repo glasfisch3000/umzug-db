@@ -57,7 +57,7 @@ struct ItemsGet: AsyncParsableCommand {
             if let item = item?.toDTO() {
                 print(try outputFormat.format(item))
             } else {
-                throw DBError.itemNotFound(itemID)
+                throw DBError.modelNotFound(.items(itemID))
             }
         } catch {
             app.logger.report(error: error)
