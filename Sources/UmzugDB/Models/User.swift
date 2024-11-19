@@ -1,5 +1,5 @@
 import Fluent
-import Foundation
+import Vapor
 import Crypto
 
 final class User: Model, Sendable {
@@ -42,7 +42,7 @@ final class User: Model, Sendable {
 }
 
 extension User {
-    struct DTO: Codable {
+    struct DTO: Codable, Content {
         var id: UUID?
         var name: String
         var password: Data?

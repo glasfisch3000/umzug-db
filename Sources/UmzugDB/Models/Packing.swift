@@ -1,5 +1,5 @@
 import Fluent
-import Foundation
+import Vapor
 import Crypto
 
 final class Packing: Model, Sendable {
@@ -35,7 +35,7 @@ final class Packing: Model, Sendable {
 }
 
 extension Packing {
-    struct DTO: Codable {
+    struct DTO: Codable, Content {
         var id: UUID?
         var item: Item.DTO?
         var box: Box.DTO?
