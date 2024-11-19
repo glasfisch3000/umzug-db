@@ -10,6 +10,9 @@ final class Box: Model, Sendable {
 
     @Field(key: "title")
     var title: String
+    
+    @Siblings(through: Packing.self, from: \.$box, to: \.$item)
+    var items: [Item]
 
     init() { }
 
@@ -20,7 +23,8 @@ final class Box: Model, Sendable {
     
     func toDTO() -> DTO {
         DTO(id: self.$id.value,
-            title: self.title)
+            title: self.title,
+            packings: self.$items.$pivots.value?.map { $0.toDTO() })
     }
 }
 
@@ -28,5 +32,6 @@ extension Box {
     struct DTO: Codable {
         var id: UUID?
         var title: String
+        var packings: [Packing.DTO]?
     }
 }
