@@ -25,7 +25,7 @@ public func configureDB(_ app: Application, _ config: AppConfig) async throws {
 func configureRoutes(_ app: Application) throws {
     let protected = app
         .grouped("api")
-        .grouped(BasicUserAuthenticator())
+        .grouped(UserBasicAuthenticator())
         .grouped(User.guardMiddleware())
     
     try protected.register(collection: APIController())
