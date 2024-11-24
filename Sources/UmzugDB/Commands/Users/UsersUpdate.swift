@@ -72,7 +72,7 @@ struct UsersUpdate: AsyncParsableCommand {
             }
             
             if let password = userOptions.password {
-                user.password = Data(User.hashPassword(password, salt: user.salt))
+                user.password = User.hashPassword(password, salt: user.salt)
             }
             
             do {

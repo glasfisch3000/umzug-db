@@ -22,10 +22,10 @@ public func configureDB(_ app: Application, _ config: AppConfig) async throws {
 }
 
 func configureRoutes(_ app: Application) throws {
-    app.views.use(.leaf)
+    let protected = app
+        .grouped("api")
+        .grouped(BasicUserAuthenticator())
+        .grouped(User.guardMiddleware())
     
-    let fileMiddleware = FileMiddleware(publicDirectory: app.directory.publicDirectory, advancedETagComparison: true)
-    app.middleware.use(fileMiddleware)
-    
-    // TODO: web content controllers
+    try protected.register(collection: APIController())
 }

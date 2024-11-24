@@ -23,7 +23,7 @@ final class User: Model, Sendable {
         self.id = id
         self.name = name
         self.salt = .generateRandom()
-        self.password = Data(Self.hashPassword(password, salt: self.salt))
+        self.password = Self.hashPassword(password, salt: self.salt)
     }
     
     func toDTO() -> DTO {
@@ -33,11 +33,11 @@ final class User: Model, Sendable {
             salt: self.salt)
     }
     
-    static func hashPassword(_ string: String, salt: UUID) -> SHA256.Digest {
+    static func hashPassword(_ string: String, salt: UUID) -> Data {
         var hasher = SHA256()
         hasher.update(data: Data(string.utf8))
         hasher.update(data: Data(salt.uuidString.utf8))
-        return hasher.finalize()
+        return Data(hasher.finalize())
     }
 }
 
