@@ -21,6 +21,9 @@ struct ItemsCreate: AsyncParsableCommand {
     struct ItemOptionGroup: ParsableArguments {
         @ArgumentParser.Argument
         var title: String
+        
+        @ArgumentParser.Option(name: [.customShort("P"), .customLong("prio")])
+        var priority: Priority?
     }
     
     @ArgumentParser.Option(name: [.short, .customLong("env")])
@@ -57,7 +60,7 @@ struct ItemsCreate: AsyncParsableCommand {
         do {
             try await configureDB(app, config)
             
-            let item = Item(id: nil, title: self.item.title)
+            let item = Item(id: nil, title: self.item.title, priority: self.item.priority)
             do {
                 try await item.create(on: app.db)
             } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {

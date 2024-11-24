@@ -35,11 +35,12 @@ struct ItemsAPIController: RouteCollection {
     func create(request req: Request) async throws -> some Content {
         struct QueryOptions: Codable {
             var title: String
+            var priority: Priority?
         }
         
         let options = try req.query.decode(QueryOptions.self)
         
-        let item = Item(title: options.title)
+        let item = Item(title: options.title, priority: options.priority)
         do {
             try await item.create(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {

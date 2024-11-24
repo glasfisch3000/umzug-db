@@ -19,14 +19,6 @@ struct Pack: AsyncParsableCommand {
         aliases: []
     )
     
-    struct BoxOptionGroup: ParsableArguments {
-        @ArgumentParser.Argument
-        var name: String
-        
-        @ArgumentParser.Option(name: [.long, .customShort("B")])
-        var box: String
-    }
-    
     @ArgumentParser.Option(name: [.short, .customLong("env")])
     private var environment: ParsableEnvironment?
     
@@ -103,7 +95,14 @@ struct Pack: AsyncParsableCommand {
     
     func getItem(on db: any Database) async throws -> Item {
         guard let id = UUID(self.item) else {
-            return Item(title: self.item)
+            guard let item = try await Item.query(on: db)
+                .filter(\.$title == self.item)
+                .unique()
+                .first() else {
+                throw DBError.modelNotFound(.item_title(self.item))
+            }
+            
+            return item
         }
         
         guard let item = try await Item.find(id, on: db) else {

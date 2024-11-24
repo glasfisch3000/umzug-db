@@ -11,14 +11,18 @@ final class Item: Model, Sendable {
     @Field(key: "title")
     var title: String
     
+    @OptionalEnum(key: "priority")
+    var priority: Priority?
+    
     @Children(for: \Packing.$item)
     var packings: [Packing]
     
     init() { }
 
-    init(id: UUID? = nil, title: String) {
+    init(id: UUID? = nil, title: String, priority: Priority?) {
         self.id = id
         self.title = title
+        self.priority = priority
     }
     
     func toDTO() -> DTO {
@@ -32,6 +36,7 @@ extension Item {
     struct DTO: Codable, Content {
         var id: UUID?
         var title: String
+        var priority: Priority?
         var packings: [Packing.DTO]?
     }
 }
