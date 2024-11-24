@@ -29,7 +29,7 @@ struct Serve: AsyncParsableCommand {
     private var configFile: FilePath?
     
     @ArgumentParser.Option(name: .shortAndLong)
-    private var port: UInt16 = 8080
+    private var port: UInt16 = 9090
     
     @ArgumentParser.Option(name: [.long, .customShort("H")])
     private var hostname: String = "127.0.0.1"
