@@ -8,11 +8,11 @@ struct UserBasicAuthenticator: AsyncBasicAuthenticator {
         guard let user = try await User.query(on: request.db)
             .filter(\.$name == basic.username)
             .first() else {
-            return
+            throw APIError.invalidAuthentication
         }
         
         guard user.password == User.hashPassword(basic.password, salt: user.salt) else {
-            return
+            throw APIError.invalidAuthentication
         }
         
         request.auth.login(user)

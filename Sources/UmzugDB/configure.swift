@@ -26,7 +26,7 @@ func configureRoutes(_ app: Application) throws {
     let protected = app
         .grouped("api")
         .grouped(UserBasicAuthenticator())
-        .grouped(User.guardMiddleware())
+        .grouped(User.guardMiddleware(throwing: APIError.invalidAuthentication))
     
     try protected.register(collection: APIController())
 }
