@@ -47,12 +47,7 @@ struct PackingsAPIController: RouteCollection {
         do {
             try await packing.create(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            struct ConstraintViolation: Encodable {
-                var itemID: UUID
-                var boxID: UUID
-            }
-            throw APIError.uniqueConstraintViolation(ConstraintViolation(itemID: packing.$item.id,
-                                                                         boxID: packing.$box.id))
+            throw APIError.uniqueConstraintViolation(.packing(item: packing.$item.id, box: packing.$box.id))
         }
         
         return packing.toDTO()
@@ -114,12 +109,8 @@ struct PackingsAPIController: RouteCollection {
         do {
             try await packing.update(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            struct ConstraintViolation: Encodable {
-                var itemID: UUID
-                var boxID: UUID
-            }
-            throw APIError.uniqueConstraintViolation(ConstraintViolation(itemID: packing.$item.id,
-                                                                         boxID: packing.$box.id))
+            throw APIError.uniqueConstraintViolation(.packing(item: packing.$item.id,
+                                                              box: packing.$box.id))
         }
         
         return packing.toDTO()
