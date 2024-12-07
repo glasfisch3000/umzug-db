@@ -2,6 +2,7 @@ import Vapor
 
 enum APIError: Error, Encodable {
     case invalidAuthentication
+    case invalidQueryOptions
     case missingID
     case invalidUUID(String)
     case modelNotFound(UUID)

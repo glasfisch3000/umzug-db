@@ -14,31 +14,36 @@ struct BoxesAPIController: RouteCollection {
     
     @Sendable
     func list(request req: Request) async throws -> some Content {
+        // parse list options
         struct QueryOptions: Codable {
             var limit: Int?
         }
+        guard let options = try? req.query.decode(QueryOptions.self) else {
+            throw APIError.invalidQueryOptions
+        }
         
-        let options = try req.query.decode(QueryOptions.self)
-        
+        // prepare list query
         var query = Box.query(on: req.db)
-        
         if let limit = options.limit {
             query = query.limit(limit)
         }
         
+        // query and return boxes
         let boxes = try await query.all()
-        
         return boxes.map { $0.toDTO() }
     }
     
     @Sendable
     func create(request req: Request) async throws -> some Content {
+        // parse box properties
         struct QueryOptions: Codable {
             var title: String
         }
+        guard let options = try? req.query.decode(QueryOptions.self) else {
+            throw APIError.invalidQueryOptions
+        }
         
-        let options = try req.query.decode(QueryOptions.self)
-        
+        // create box
         let box = Box(title: options.title)
         do {
             try await box.create(on: req.db)
@@ -51,14 +56,15 @@ struct BoxesAPIController: RouteCollection {
     
     @Sendable
     func find(request req: Request) async throws -> some Content {
+        // get box id
         guard let idString = req.parameters.get("id") else {
             throw APIError.missingID
         }
-        
         guard let boxID = UUID(idString) else {
             throw APIError.invalidUUID(idString)
         }
         
+        // find box and its packings
         guard let box = try await Box.find(boxID, on: req.db) else {
             throw APIError.modelNotFound(boxID)
         }
@@ -69,23 +75,29 @@ struct BoxesAPIController: RouteCollection {
     
     @Sendable
     func update(request req: Request) async throws -> some Content {
+        // get box id
         guard let idString = req.parameters.get("id") else {
             throw APIError.missingID
         }
-        
         guard let boxID = UUID(idString) else {
             throw APIError.invalidUUID(idString)
         }
         
+        // parse box properties
         struct QueryOptions: Codable {
             var title: String?
         }
+        guard let options = try? req.query.decode(QueryOptions.self) else {
+            throw APIError.invalidQueryOptions
+        }
         
-        let options = try req.query.decode(QueryOptions.self)
-        
+        // find box to update
         guard let box = try await Box.find(boxID, on: req.db) else {
             throw APIError.modelNotFound(boxID)
         }
+        
+        
+        // update box fields
         
         if let title = options.title {
             box.title = title
@@ -102,14 +114,15 @@ struct BoxesAPIController: RouteCollection {
     
     @Sendable
     func delete(request req: Request) async throws -> some Content {
+        // get box id
         guard let idString = req.parameters.get("id") else {
             throw APIError.missingID
         }
-        
         guard let boxID = UUID(idString) else {
             throw APIError.invalidUUID(idString)
         }
         
+        // find and delete box
         guard let box = try await Box.find(boxID, on: req.db) else {
             throw APIError.modelNotFound(boxID)
         }

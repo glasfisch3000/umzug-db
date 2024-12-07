@@ -14,35 +14,40 @@ struct PackingsAPIController: RouteCollection {
     
     @Sendable
     func list(request req: Request) async throws -> some Content {
+        // parse list options
         struct QueryOptions: Codable {
             var limit: Int?
         }
+        guard let options = try? req.query.decode(QueryOptions.self) else {
+            throw APIError.invalidQueryOptions
+        }
         
-        let options = try req.query.decode(QueryOptions.self)
-        
+        // prepare list query
         var query = Packing.query(on: req.db)
             .with(\.$item)
             .with(\.$box)
-        
         if let limit = options.limit {
             query = query.limit(limit)
         }
         
+        // list and return packings
         let packings = try await query.all()
-        
         return packings.map { $0.toDTO() }
     }
     
     @Sendable
     func create(request req: Request) async throws -> some Content {
+        // parse packing properties
         struct QueryOptions: Codable {
             var itemID: UUID
             var boxID: UUID
             var amount: Int
         }
+        guard let options = try? req.query.decode(QueryOptions.self) else {
+            throw APIError.invalidQueryOptions
+        }
         
-        let options = try req.query.decode(QueryOptions.self)
-        
+        // create packing
         let packing = Packing(itemID: options.itemID, boxID: options.boxID, amount: options.amount)
         do {
             try await packing.create(on: req.db)
@@ -55,14 +60,15 @@ struct PackingsAPIController: RouteCollection {
     
     @Sendable
     func find(request req: Request) async throws -> some Content {
+        // get packing id
         guard let idString = req.parameters.get("id") else {
             throw APIError.missingID
         }
-        
         guard let packingID = UUID(idString) else {
             throw APIError.invalidUUID(idString)
         }
         
+        // load packing + item and box
         guard let packing = try await Packing.find(packingID, on: req.db) else {
             throw APIError.modelNotFound(packingID)
         }
@@ -74,25 +80,30 @@ struct PackingsAPIController: RouteCollection {
     
     @Sendable
     func update(request req: Request) async throws -> some Content {
+        // get packing id
         guard let idString = req.parameters.get("id") else {
             throw APIError.missingID
         }
-        
         guard let packingID = UUID(idString) else {
             throw APIError.invalidUUID(idString)
         }
         
+        // parse packing properties
         struct QueryOptions: Codable {
             var itemID: UUID?
             var boxID: UUID?
             var amount: Int?
         }
+        guard let options = try? req.query.decode(QueryOptions.self) else {
+            throw APIError.invalidQueryOptions
+        }
         
-        let options = try req.query.decode(QueryOptions.self)
-        
+        // find packing to update
         guard let packing = try await Packing.find(packingID, on: req.db) else {
             throw APIError.modelNotFound(packingID)
         }
+        
+        // update packing's fields
         
         if let itemID = options.itemID {
             packing.$item.id = itemID
@@ -118,14 +129,15 @@ struct PackingsAPIController: RouteCollection {
     
     @Sendable
     func delete(request req: Request) async throws -> some Content {
+        // get packing id
         guard let idString = req.parameters.get("id") else {
             throw APIError.missingID
         }
-        
         guard let packingID = UUID(idString) else {
             throw APIError.invalidUUID(idString)
         }
         
+        // find and delete packing
         guard let packing = try await Packing.find(packingID, on: req.db) else {
             throw APIError.modelNotFound(packingID)
         }
