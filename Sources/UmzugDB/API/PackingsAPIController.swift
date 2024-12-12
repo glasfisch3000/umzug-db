@@ -17,6 +17,8 @@ struct PackingsAPIController: RouteCollection {
         // parse list options
         struct QueryOptions: Codable {
             var limit: Int?
+            var boxID: UUID?
+            var itemID: UUID?
         }
         guard let options = try? req.query.decode(QueryOptions.self) else {
             throw APIError.invalidQueryOptions
@@ -26,6 +28,12 @@ struct PackingsAPIController: RouteCollection {
         var query = Packing.query(on: req.db)
             .with(\.$item)
             .with(\.$box)
+        if let boxID = options.boxID {
+            query = query.filter(\.$box.$id == boxID)
+        }
+        if let itemID = options.itemID {
+            query = query.filter(\.$item.$id == itemID)
+        }
         if let limit = options.limit {
             query = query.limit(limit)
         }
