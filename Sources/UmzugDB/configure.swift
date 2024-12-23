@@ -20,6 +20,7 @@ public func configureDB(_ app: Application, _ config: AppConfig) async throws {
     app.migrations.add(CreateItem())
     app.migrations.add(CreatePacking())
     app.migrations.add(CreatePriority())
+    app.migrations.add(SimplifyPriority())
 }
 
 func configureRoutes(_ app: Application) throws {
