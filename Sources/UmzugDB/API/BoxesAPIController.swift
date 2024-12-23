@@ -48,7 +48,7 @@ struct BoxesAPIController: RouteCollection {
         do {
             try await box.create(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            throw APIError.uniqueConstraintViolation(.boxes(title: box.title))
+            throw APIError.constraintViolation(.box_unique(title: box.title))
         }
         
         return box.toDTO()
@@ -106,7 +106,7 @@ struct BoxesAPIController: RouteCollection {
         do {
             try await box.update(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            throw APIError.uniqueConstraintViolation(.boxes(title: box.title))
+            throw APIError.constraintViolation(.box_unique(title: box.title))
         }
         
         return box.toDTO()

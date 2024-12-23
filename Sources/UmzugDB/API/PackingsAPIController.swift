@@ -54,13 +54,16 @@ struct PackingsAPIController: RouteCollection {
         guard let options = try? req.query.decode(QueryOptions.self) else {
             throw APIError.invalidQueryOptions
         }
+        guard options.amount > 0 else { // make sure packings only have positive non-zero amounts
+            throw APIError.constraintViolation(.packing_nonzero(amount: options.amount))
+        }
         
         // create packing
         let packing = Packing(itemID: options.itemID, boxID: options.boxID, amount: options.amount)
         do {
             try await packing.create(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            throw APIError.uniqueConstraintViolation(.packing(item: packing.$item.id, box: packing.$box.id))
+            throw APIError.constraintViolation(.packing_unique(item: packing.$item.id, box: packing.$box.id))
         }
         
         return packing.toDTO()
@@ -122,14 +125,17 @@ struct PackingsAPIController: RouteCollection {
         }
         
         if let amount = options.amount {
+            guard amount > 0 else { // ensure that packings only have positive non-zero amounts
+                throw APIError.constraintViolation(.packing_nonzero(amount: amount))
+            }
+            
             packing.amount = amount
         }
         
         do {
             try await packing.update(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            throw APIError.uniqueConstraintViolation(.packing(item: packing.$item.id,
-                                                              box: packing.$box.id))
+            throw APIError.constraintViolation(.packing_unique(item: packing.$item.id, box: packing.$box.id))
         }
         
         return packing.toDTO()

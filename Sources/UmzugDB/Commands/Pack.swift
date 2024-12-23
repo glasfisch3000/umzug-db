@@ -80,7 +80,7 @@ struct Pack: AsyncParsableCommand {
             do {
                 try await packing.save(on: app.db)
             } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-                throw DBError.uniqueConstraintViolation(.packing(item: itemID, box: boxID))
+                throw DBError.constraintViolation(.packing_unique(item: itemID, box: boxID))
             }
             
             print(try outputFormat.format(packing.toDTO()))

@@ -6,7 +6,7 @@ enum APIError: Error, Encodable {
     case missingID
     case invalidUUID(String)
     case modelNotFound(UUID)
-    case uniqueConstraintViolation(DBError.UniqueConstraintViolation)
+    case constraintViolation(DBError.ConstraintViolation)
     case other
     
     enum InvalidUUIDCodingKeys: String, CodingKey {
@@ -17,7 +17,7 @@ enum APIError: Error, Encodable {
         case _0 = "modelID"
     }
     
-    enum UniqueConstraintViolationCodingKeys: String, CodingKey {
+    enum ConstraintViolationCodingKeys: String, CodingKey {
         case _0 = "constraint"
     }
 }

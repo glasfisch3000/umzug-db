@@ -49,7 +49,7 @@ struct ItemsAPIController: RouteCollection {
         do {
             try await item.create(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            throw APIError.uniqueConstraintViolation(.items(title: item.title))
+            throw APIError.constraintViolation(.item_unique(title: item.title))
         }
         
         return item.toDTO()
@@ -106,7 +106,7 @@ struct ItemsAPIController: RouteCollection {
         do {
             try await item.update(on: req.db)
         } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-            throw APIError.uniqueConstraintViolation(.items(title: item.title))
+            throw APIError.constraintViolation(.item_unique(title: item.title))
         }
         
         return item.toDTO()

@@ -71,7 +71,7 @@ struct BoxesUpdate: AsyncParsableCommand {
             do {
                 try await box.update(on: app.db)
             } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-                throw DBError.uniqueConstraintViolation(.boxes(title: box.title))
+                throw DBError.constraintViolation(.box_unique(title: box.title))
             }
             
             print(try outputFormat.format(box.toDTO()))

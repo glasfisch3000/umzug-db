@@ -64,7 +64,7 @@ struct UsersCreate: AsyncParsableCommand {
             do {
                 try await user.create(on: app.db)
             } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-                throw DBError.uniqueConstraintViolation(.users(name: user.name))
+                throw DBError.constraintViolation(.user_unique(name: user.name))
             }
             
             print(try outputFormat.format(user.toDTO()))

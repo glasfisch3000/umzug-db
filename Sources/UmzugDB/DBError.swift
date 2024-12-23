@@ -2,12 +2,12 @@ import struct Foundation.UUID
 
 enum DBError: Error, Codable, CustomStringConvertible {
     case modelNotFound(Self.ModelNotFound)
-    case uniqueConstraintViolation(Self.UniqueConstraintViolation)
+    case constraintViolation(Self.ConstraintViolation)
     
     var description: String {
         switch self {
         case .modelNotFound(let error): error.description
-        case .uniqueConstraintViolation(let error): error.description
+        case .constraintViolation(let error): error.description
         }
     }
 }
@@ -35,18 +35,20 @@ extension DBError {
 }
 
 extension DBError {
-    enum UniqueConstraintViolation: Codable, CustomStringConvertible {
-        case users(name: String)
-        case boxes(title: String)
-        case items(title: String)
-        case packing(item: Item.IDValue, box: Box.IDValue)
+    enum ConstraintViolation: Codable, CustomStringConvertible {
+        case user_unique(name: String)
+        case box_unique(title: String)
+        case item_unique(title: String)
+        case packing_unique(item: Item.IDValue, box: Box.IDValue)
+        case packing_nonzero(amount: Int)
         
         var description: String {
             switch self {
-            case .users(name: let name): "Violation of user's name uniqueness constraint: \"\(name)\""
-            case .boxes(title: let title): "Violation of box's title uniqueness constraint: \"\(title)\""
-            case .items(title: let title): "Violation of item's title uniqueness constraint: \"\(title)\""
-            case .packing(item: let item, box: let box): "Violation of packing's item+box uniqueness constraint: item \(item), box \(box)"
+            case .user_unique(name: let name): "Violation of user's name uniqueness constraint: \"\(name)\""
+            case .box_unique(title: let title): "Violation of box's title uniqueness constraint: \"\(title)\""
+            case .item_unique(title: let title): "Violation of item's title uniqueness constraint: \"\(title)\""
+            case .packing_unique(item: let item, box: let box): "Violation of packing's item+box uniqueness constraint: item \(item), box \(box)"
+            case .packing_nonzero(amount: let amount): "Violation of packing's positive-nonzero amount constraint: \"\(amount)\""
             }
         }
     }

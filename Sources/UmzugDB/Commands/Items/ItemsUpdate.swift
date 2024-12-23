@@ -71,7 +71,7 @@ struct ItemsUpdate: AsyncParsableCommand {
             do {
                 try await item.update(on: app.db)
             } catch let error as PSQLError where error.serverInfo?[.sqlState] == "23505" {
-                throw DBError.uniqueConstraintViolation(.items(title: item.title))
+                throw DBError.constraintViolation(.item_unique(title: item.title))
             }
             
             print(try outputFormat.format(item.toDTO()))
