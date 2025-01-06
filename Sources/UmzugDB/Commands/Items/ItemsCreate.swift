@@ -23,7 +23,7 @@ struct ItemsCreate: AsyncParsableCommand {
         var title: String
         
         @ArgumentParser.Option(name: [.customShort("P"), .customLong("prio")])
-        var priority: Priority?
+        var priority: Priority
     }
     
     @ArgumentParser.Option(name: [.short, .customLong("env")])

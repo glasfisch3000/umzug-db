@@ -38,7 +38,7 @@ struct ItemsAPIController: RouteCollection {
         // parse item properties
         struct QueryOptions: Codable {
             var title: String
-            var priority: Priority?
+            var priority: Priority
         }
         guard let options = try? req.query.decode(QueryOptions.self) else {
             throw APIError.invalidQueryOptions
