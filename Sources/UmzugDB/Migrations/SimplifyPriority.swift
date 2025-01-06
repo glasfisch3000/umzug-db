@@ -21,3 +21,27 @@ struct SimplifyPriority: AsyncMigration {
             .update()
     }
 }
+
+extension SimplifyPriority {
+    struct Fix: AsyncMigration {
+        func prepare(on database: any Database) async throws {
+            let priority = try await database.enum("priority")
+                .read()
+            
+            try await database.schema("items")
+                .deleteField("priority")
+                .field("priority", priority, .required)
+                .update()
+        }
+        
+        func revert(on database: any Database) async throws {
+            let priority = try await database.enum("priority")
+                .read()
+            
+            try await database.schema("items")
+                .deleteField("priority")
+                .field("priority", priority)
+                .update()
+        }
+    }
+}
