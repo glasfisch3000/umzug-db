@@ -19,6 +19,7 @@ jobs:
   build:
 
     runs-on: ubuntu-24.04
+    container: swift:6.0.2-noble
     permissions:
       contents: read
       packages: write
@@ -30,6 +31,44 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Install zstd compression algorithm for faster caching
+      - name: Install zstd
+        run: |
+          apt-get update -y
+          apt-get install -y zstd
+
+      # Restore cached Swift build artifacts
+      - name: Restore .build
+        if: ${{ !(github.run_attempt > 1) }}
+        id: "restore-build"
+        uses: actions/cache/restore@v4
+        with:
+          path: .build
+          key: "swiftpm-build-${{ runner.os }}-${{ github.event.pull_request.base.sha || github.event.after }}"
+          restore-keys: "swiftpm-build-${{ runner.os }}-"
+
+      # Build the app since that's not longer happening in the dockerfile
+      - name: Build App
+        run: |
+          apt-get update -y
+          apt-get install -y libjemalloc-dev
+
+          # Build the application, with optimizations, with static linking, and using jemalloc
+          swift build \
+            -c release \
+            --product umzug-db \
+            --static-swift-stdlib \
+            -Xlinker -ljemalloc \
+            $([ -f ./Package.resolved ] && echo "--force-resolved-versions" || true)
+
+      # Cache Swift build artifacts
+      - name: Cache .build
+        if: steps.restore-build.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .build
+          key: "swiftpm-build-${{ runner.os }}-${{ github.event.pull_request.base.sha || github.event.after }}"
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
@@ -37,6 +76,31 @@ jobs:
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
         with:
           cosign-release: 'v2.2.4'
+
+      # We need to install docker since we're working in the swift container
+      - name: Install Docker
+        run: |
+          set -eu
+
+          # Installation commands from https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository:
+
+          # Add Docker's official GPG key:
+          apt-get update -y
+          apt-get install ca-certificates curl gnupg -y
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+
+          # Add the repository to Apt sources:
+          # shellcheck source=/dev/null
+          echo \
+            "deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+              \"$(. /etc/os-release && echo "$VERSION_CODENAME")\" stable" |
+            tee /etc/apt/sources.list.d/docker.list >/dev/null
+          apt-get update -y
+
+          # Install Docker:
+          apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
