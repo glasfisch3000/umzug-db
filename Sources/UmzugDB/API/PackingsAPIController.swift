@@ -155,6 +155,10 @@ struct PackingsAPIController: RouteCollection {
         guard let packing = try await Packing.find(packingID, on: req.db) else {
             throw APIError.modelNotFound(packingID)
         }
+        
+        _ = try? await packing.$item.load(on: req.db)
+        _ = try? await packing.$box.load(on: req.db)
+        
         try await packing.delete(on: req.db)
         
         return packing.toDTO()
