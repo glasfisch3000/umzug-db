@@ -1,0 +1,7 @@
+.github
+.git
+.gitignore
+.gitattributes
+.dockerignore
+docker-workflow
+Dockerfile
