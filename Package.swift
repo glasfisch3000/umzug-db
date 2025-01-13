@@ -19,7 +19,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
         .package(url: "https://github.com/apple/swift-crypto.git", from: "3.9.1"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3"),
-        .package(url: "https://github.com/apple/swift-container-plugin", from: "0.3.0"),
     ],
     targets: [
         .executableTarget(

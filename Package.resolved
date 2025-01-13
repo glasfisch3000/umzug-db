@@ -172,15 +172,6 @@
       }
     },
     {
-      "identity" : "swift-container-plugin",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-container-plugin",
-      "state" : {
-        "revision" : "91f9b4967a4ee49ffbb6d7c70b646ecfcab1ae7b",
-        "version" : "0.3.1"
-      }
-    },
-    {
       "identity" : "swift-crypto",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
