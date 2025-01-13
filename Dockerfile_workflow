@@ -6,10 +6,10 @@ FROM swift:6.0.2-noble AS build
 WORKDIR /staging
 
 # Copy entire repo into container
-COPY .. .
+COPY . .
 
 # Copy main executable to staging area
-RUN cp "$(swift build -c release --show-bin-path)/umzug-db" ./
+RUN ls -la 1>&2 && cp "$(swift build -c release --show-bin-path)/umzug-db" ./
 
 # Copy static swift backtracer binary to staging area
 RUN cp "/usr/libexec/swift/linux/swift-backtrace-static" ./
