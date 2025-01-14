@@ -23,8 +23,6 @@ RUN swift package resolve \
 # Copy entire repo into container
 COPY . .
 
-RUN /usr/bin/sh
-
 # Build everything, with optimizations, with static linking, and using jemalloc
 # N.B.: The static version of jemalloc is incompatible with the static Swift runtime.
 RUN swift build -c release \
@@ -39,8 +37,6 @@ RUN cp "$(swift build --package-path /build -c release --show-bin-path)/umzug-db
 
 # Copy static swift backtracer binary to staging area
 RUN cp "/usr/libexec/swift/linux/swift-backtrace-static" ./
-
-RUN swift --version
 
 # Copy resources bundled by SPM to staging area
 RUN find -L "$(swift build --package-path /build -c release --show-bin-path)/" -regex '.*\.resources$' -exec cp -Ra {} ./ \;
